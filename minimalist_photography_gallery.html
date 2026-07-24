@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claire Zhou — Minimalist Photography Gallery</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#F9F8F6',
+                        'cream-card': '#FAF8F5',
+                        charcoal: '#222222',
+                        'dust-gray': '#888888',
+                        'soft-border': '#EAE8E3',
+                    },
+                    fontFamily: {
+                        serif: ['"Courier Prime"', 'Courier', 'monospace'],
+                        sans: ['"Courier Prime"', 'Courier', 'monospace'],
+                        mono: ['"Courier Prime"', 'Courier', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts: Courier Prime Typewriter Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #F9F8F6;
+            color: #222222;
+            font-family: 'Courier Prime', Courier, monospace;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Subtle film grain background overlay */
+        .film-grain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 99;
+            opacity: 0.035;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Image hover soft effect */
+        .photo-frame img {
+            transition: opacity 0.5s ease, transform 0.7s ease;
+        }
+        .photo-frame:hover img {
+            opacity: 0.95;
+            transform: scale(1.008);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F9F8F6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #D8D4CC;
+            border-radius: 3px;
+        }
+
+        /* Film strip viewport mask */
+        .film-viewport {
+            mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent);
+        }
+        .film-frame {
+            flex: 0 0 auto;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .film-frame:hover {
+            opacity: 0.95;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen flex flex-col justify-between selection:bg-neutral-200">
+
+    <!-- Film Grain Overlay -->
+    <div class="film-grain"></div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-[#F9F8F6]/90 backdrop-blur-md transition-all duration-300 py-6 px-6 sm:px-12 md:px-16 flex justify-between items-center border-b border-transparent border-stone-200/40">
+        <!-- Brand / Photographer Name -->
+        <a href="#home" onclick="switchPage('home')" class="group flex flex-col">
+            <span class="font-serif text-2xl sm:text-3xl tracking-wide text-charcoal group-hover:opacity-70 transition-opacity">
+                Claire Zhou
+            </span>
+            <span class="text-[10px] tracking-[0.2em] text-dust-gray uppercase font-light -mt-1">
+                independent photographer
+            </span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="hidden md:flex items-center space-x-10 text-xs tracking-[0.18em] uppercase text-dust-gray">
+            <button onclick="switchPage('home')" id="nav-home" class="nav-btn active text-charcoal border-b border-charcoal pb-0.5 transition-all">Home</button>
+            <button onclick="switchPage('projects')" id="nav-projects" class="nav-btn hover:text-charcoal transition-colors">Projects</button>
+            <button onclick="switchPage('about')" id="nav-about" class="nav-btn hover:text-charcoal transition-colors">About</button>
+            <button onclick="switchPage('contact')" id="nav-contact" class="nav-btn hover:text-charcoal transition-colors">Contact</button>
+        </nav>
+
+        <!-- Mobile Menu Toggle -->
+        <button onclick="toggleMobileMenu()" class="md:hidden text-charcoal p-1 focus:outline-none" aria-label="Toggle Menu">
+            <i data-lucide="menu" id="menu-icon" class="w-6 h-6 stroke-[1.25]"></i>
+        </button>
+    </header>
+
+    <!-- Mobile Dropdown Menu -->
+    <div id="mobile-menu" class="hidden fixed inset-x-0 top-[73px] z-30 bg-cream/98 border-b border-stone-200 px-8 py-8 flex-col space-y-6 text-sm tracking-[0.2em] uppercase text-dust-gray md:hidden transition-all">
+        <button onclick="switchPage('home'); toggleMobileMenu()" class="text-left py-1 text-charcoal">01 — Home</button>
+        <button onclick="switchPage('projects'); toggleMobileMenu()" class="text-left py-1 hover:text-charcoal">02 — Projects</button>
+        <button onclick="switchPage('about'); toggleMobileMenu()" class="text-left py-1 hover:text-charcoal">03 — About</button>
+        <button onclick="switchPage('contact'); toggleMobileMenu()" class="text-left py-1 hover:text-charcoal">04 — Contact</button>
+    </div>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-8 md:px-12 py-6 md:py-8">
+
+        <!-- ==================== HOME PAGE (Continuous Film Strip Reel) ==================== -->
+        <section id="page-home" class="page-content py-2 sm:py-6 flex flex-col items-center justify-center min-h-[70vh] sm:min-h-[75vh] select-none">
+            
+            <div class="relative w-full max-w-4xl flex flex-col items-center">
+                
+                <!-- Film Strip Viewport -->
+                <div id="film-viewport" 
+                     class="film-viewport relative w-full overflow-hidden py-4 cursor-grab active:cursor-grabbing photo-frame group"
+                     onmouseenter="pauseFilmScroll()" 
+                     onmouseleave="resumeFilmScroll()">
+                    
+                    <!-- Analog Film Edge Markings -->
+                    <div class="absolute top-0 inset-x-0 h-3 border-b border-stone-300/60 flex justify-between px-4 text-[8px] text-stone-400 font-mono tracking-widest pointer-events-none z-10">
+                        <span>KODAK PORTRA 400</span>
+                        <span>SAFETY FILM</span>
+                        <span>35MM</span>
+                    </div>
+
+                    <!-- Continuous Moving Track -->
+                    <div id="film-track" class="flex items-center space-x-6 sm:space-x-8 py-3 will-change-transform">
+                        <!-- Dynamically populated via JS -->
+                    </div>
+
+                    <div class="absolute bottom-0 inset-x-0 h-3 border-t border-stone-300/60 flex justify-between px-4 text-[8px] text-stone-400 font-mono tracking-widest pointer-events-none z-10">
+                        <span>EASTMAN 2026</span>
+                        <span>EXPOSURE ▶</span>
+                        <span>ISO 400</span>
+                    </div>
+
+                    <!-- Hover Pause Indicator -->
+                    <div id="hover-indicator" class="absolute top-5 right-5 bg-charcoal/80 text-cream text-[10px] uppercase tracking-widest px-2.5 py-1 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none z-20">
+                        Paused on Hover
+                    </div>
+                </div>
+
+                <!-- Navigation Controls & Center Frame Info -->
+                <div class="w-full flex justify-between items-center mt-6 px-2 sm:px-8">
+                    <button onclick="scrollFilmByFrame(-1)" class="p-2 text-charcoal hover:opacity-50 transition-opacity focus:outline-none flex items-center space-x-2" aria-label="Previous Frame">
+                        <i data-lucide="chevron-left" class="w-5 h-5 stroke-[1.25]"></i>
+                        <span class="hidden sm:inline text-xs tracking-widest uppercase">Prev</span>
+                    </button>
+
+                    <div class="text-center space-y-1">
+                        <p id="home-slide-counter" class="text-xs tracking-[0.2em] text-charcoal font-medium uppercase">01 / 08</p>
+                        <p id="home-slide-caption" class="text-[11px] tracking-[0.15em] text-dust-gray uppercase font-light"></p>
+                        <p id="home-slide-exif" class="text-[10px] tracking-[0.1em] text-stone-400 uppercase font-light"></p>
+                    </div>
+
+                    <button onclick="scrollFilmByFrame(1)" class="p-2 text-charcoal hover:opacity-50 transition-opacity focus:outline-none flex items-center space-x-2" aria-label="Next Frame">
+                        <span class="hidden sm:inline text-xs tracking-widest uppercase">Next</span>
+                        <i data-lucide="chevron-right" class="w-5 h-5 stroke-[1.25]"></i>
+                    </button>
+                </div>
+
+                <p class="mt-4 text-[10px] tracking-[0.2em] text-stone-400 uppercase font-light">
+                    Continuous film reel · Hover to pause · Drag to scroll
+                </p>
+            </div>
+
+        </section>
+
+        <!-- ==================== PROJECTS PAGE ==================== -->
+        <section id="page-projects" class="page-content hidden py-6 space-y-8">
+            <!-- Grid container: 4 items in a row on desktop -->
+            <div id="projects-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-8">
+                <!-- Dynamically populated via JS -->
+            </div>
+        </section>
+
+        <!-- ==================== ABOUT PAGE ==================== -->
+        <section id="page-about" class="page-content hidden py-6 max-w-3xl mx-auto space-y-12">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                <div class="md:col-span-5">
+                    <div class="bg-stone-100 rounded-sm overflow-hidden">
+                        <img src="./images/portrait.jpg" 
+                             onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=800&auto=format&fit=crop'"
+                             alt="Claire Zhou Portrait" 
+                             class="w-full h-[45vh] object-cover block">
+                    </div>
+                    <p class="mt-2 text-[11px] tracking-[0.15em] text-dust-gray uppercase text-center font-light">
+                        Claire Zhou (b. 1996)
+                    </p>
+                </div>
+
+                <div class="md:col-span-7 space-y-6 text-stone-700 leading-relaxed font-light text-sm sm:text-base">
+                    <h2 class="font-serif text-3xl text-charcoal font-light">About the Artist</h2>
+                    <p>
+                        Claire Zhou is an independent fine art photographer based between Stockholm and Berlin. Her practice centers on intimacy, transience, memory, and the unspoken poetry found within domestic everyday environments.
+                    </p>
+                    <p>
+                        Working predominantly with 35mm film, medium format cameras, and available natural light, her images capture delicate gestures, shadow plays, and quiet human presence without post-processed manipulation.
+                    </p>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-stone-200/80 space-y-8">
+                <div>
+                    <h3 class="text-xs tracking-[0.2em] uppercase text-dust-gray mb-4 font-normal">Selected Exhibitions</h3>
+                    <ul class="space-y-3 text-sm text-stone-700 font-light">
+                        <li class="flex justify-between border-b border-stone-100 pb-2">
+                            <span>Light & Linger — Group Show, Galerie Minimal</span>
+                            <span class="text-dust-gray text-xs">Berlin, 2025</span>
+                        </li>
+                        <li class="flex justify-between border-b border-stone-100 pb-2">
+                            <span>Quiet Rooms — Solo Exhibition, Atelier 8</span>
+                            <span class="text-dust-gray text-xs">Stockholm, 2024</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== CONTACT PAGE ==================== -->
+        <section id="page-contact" class="page-content hidden py-8 max-w-2xl mx-auto space-y-12">
+            <div class="text-center space-y-3">
+                <h2 class="font-serif text-3xl sm:text-4xl text-charcoal font-light">Inquiries & Contact</h2>
+                <p class="text-xs tracking-[0.15em] text-dust-gray uppercase">Print Sales, Commissions & Gallery Representation</p>
+            </div>
+
+            <div class="bg-cream-card p-8 sm:p-10 rounded-sm border border-stone-200/60 space-y-8">
+                <div class="space-y-2 text-center">
+                    <p class="text-xs uppercase tracking-[0.2em] text-dust-gray">Direct Email</p>
+                    <a href="mailto:studio@clairezhou.com" class="font-serif text-2xl sm:text-3xl text-charcoal hover:opacity-75 transition-opacity block">
+                        studio@clairezhou.com
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-stone-200/60 text-center sm:text-left text-xs tracking-wider uppercase text-stone-600">
+                    <div>
+                        <span class="text-dust-gray block mb-1">Gallery Representation</span>
+                        <p class="font-medium text-charcoal">Atelier Minimal Gallery</p>
+                        <p class="text-dust-gray normal-case">Berlin, Germany</p>
+                    </div>
+                    <div>
+                        <span class="text-dust-gray block mb-1">Social Journal</span>
+                        <p class="font-medium text-charcoal">@claire.zhou</p>
+                        <p class="text-dust-gray normal-case">Instagram</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- LIGHTBOX / FULLSCREEN PHOTO VIEWER MODAL -->
+    <div id="lightbox" class="fixed inset-0 z-50 bg-[#F9F8F6]/98 backdrop-blur-md hidden flex flex-col justify-between p-4 sm:p-8 transition-opacity duration-300">
+        <div class="flex justify-between items-center text-xs tracking-[0.2em] uppercase text-dust-gray">
+            <span id="lightbox-album-title" class="text-charcoal font-medium hidden sm:inline"></span>
+            <span id="lightbox-counter">01 / 08</span>
+            <button onclick="closeLightbox()" class="p-2 text-charcoal hover:opacity-60 transition-opacity focus:outline-none" aria-label="Close modal">
+                <i data-lucide="x" class="w-6 h-6 stroke-[1.25]"></i>
+            </button>
+        </div>
+
+        <div class="relative flex-grow flex items-center justify-center my-4">
+            <button onclick="prevPhoto()" class="absolute left-2 sm:left-6 z-10 p-3 text-charcoal hover:opacity-50 transition-opacity focus:outline-none" aria-label="Previous image">
+                <i data-lucide="chevron-left" class="w-8 h-8 stroke-[1]"></i>
+            </button>
+
+            <div class="max-w-4xl max-h-[75vh] flex flex-col items-center justify-center px-4">
+                <img id="lightbox-img" src="" alt="Gallery Lightbox" class="max-h-[70vh] max-w-full object-contain rounded-sm shadow-sm transition-all duration-300">
+                <p id="lightbox-caption" class="mt-4 text-center text-xs tracking-[0.15em] text-dust-gray uppercase font-light"></p>
+                <p id="lightbox-exif" class="mt-1 text-center font-serif text-stone-500 text-sm"></p>
+            </div>
+
+            <button onclick="nextPhoto()" class="absolute right-2 sm:right-6 z-10 p-3 text-charcoal hover:opacity-50 transition-opacity focus:outline-none" aria-label="Next image">
+                <i data-lucide="chevron-right" class="w-8 h-8 stroke-[1]"></i>
+            </button>
+        </div>
+
+        <div class="text-center text-[10px] tracking-[0.2em] text-dust-gray uppercase pb-2">
+            Use arrow keys or click buttons to navigate
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-stone-200/60 py-8 px-6 sm:px-12 text-xs tracking-[0.15em] text-dust-gray uppercase flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+        <div>
+            © 2026 Claire Zhou. All rights reserved.
+        </div>
+        <div class="flex items-center space-x-6">
+            <span>Stockholm & Berlin</span>
+            <button onclick="window.scrollTo({top: 0, behavior: 'smooth'})" class="hover:text-charcoal transition-colors">
+                Back to Top ↑
+            </button>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Gallery data configured for GitHub repository relative paths with fallback URLs
+        const galleryData = [
+            {
+                url: "./images/01.jpg",
+                fallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1200&h=900&fit=crop",
+                caption: "Morning Light, Stockholm (2024)",
+                exif: "Leica M6 · Summicron 35mm · Kodak Portra 400"
+            },
+            {
+                url: "./images/02.jpg",
+                fallback: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=1200&h=900&fit=crop",
+                caption: "Linen Drapery and Shadows (2024)",
+                exif: "Hasselblad 500C/M · Planar 80mm · Ilford HP5 Plus"
+            },
+            {
+                url: "./images/03.jpg",
+                fallback: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&h=900&fit=crop",
+                caption: "Quiet Portrait in Natural Light (2024)",
+                exif: "Leica M6 · Summicron 50mm · Kodak Tri-X 400"
+            },
+            {
+                url: "./images/04.jpg",
+                fallback: "https://images.unsplash.com/photo-1499209974431-9dac3ada00d7?q=80&w=1200&h=900&fit=crop",
+                caption: "North Sea Interlude, Gotland (2023)",
+                exif: "Pentax 67 · 105mm f/2.4 · Portra 160"
+            },
+            {
+                url: "./images/05.jpg",
+                fallback: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&h=900&fit=crop",
+                caption: "Gestures & Water (2024)",
+                exif: "Contax T2 · 38mm · Fuji Pro 400H"
+            },
+            {
+                url: "./images/06.jpg",
+                fallback: "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&h=900&fit=crop",
+                caption: "Sunlight Filtering (2023)",
+                exif: "Leica M6 · Summicron 35mm · Kodak Gold 200"
+            },
+            {
+                url: "./images/07.jpg",
+                fallback: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=1200&h=900&fit=crop",
+                caption: "Self-Portrait with Mirror (2024)",
+                exif: "Hasselblad 500C/M · Planar 80mm · Kodak Portra 800"
+            },
+            {
+                url: "./images/08.jpg",
+                fallback: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1200&h=900&fit=crop",
+                caption: "Fog & Horizon, Berlin (2023)",
+                exif: "Leica M6 · 35mm · Ilford HP5 Plus"
+            }
+        ];
+
+        // Projects Sub-Albums Data
+        const projectsData = [
+            {
+                id: "notes-on-silence",
+                title: "01 — Notes on Silence",
+                year: "2024–2025",
+                cover: "./images/p1_cover.jpg",
+                coverFallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=800&h=800&fit=crop",
+                photos: [
+                    { url: "./images/p1_01.jpg", fallback: "https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=1200&h=900&fit=crop", caption: "Notes on Silence — Plate I", exif: "Hasselblad 500C/M · 80mm" },
+                    { url: "./images/p1_02.jpg", fallback: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=1200&h=900&fit=crop", caption: "Notes on Silence — Plate II", exif: "Hasselblad 500C/M · Ilford HP5" },
+                    { url: "./images/p1_03.jpg", fallback: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1200&h=900&fit=crop", caption: "Notes on Silence — Plate III", exif: "Leica M6 · 35mm" }
+                ]
+            },
+            {
+                id: "domestic-daylight",
+                title: "02 — Domestic Daylight",
+                year: "2023–2024",
+                cover: "./images/p2_cover.jpg",
+                coverFallback: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=800&h=800&fit=crop",
+                photos: [
+                    { url: "./images/p2_01.jpg", fallback: "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?q=80&w=1200&h=900&fit=crop", caption: "Domestic Daylight — Stockholm Apartment", exif: "Polaroid SX-70 · Natural Light" },
+                    { url: "./images/p2_02.jpg", fallback: "https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=1200&h=900&fit=crop", caption: "Domestic Daylight — Window Curtain", exif: "Contax T2 · 38mm" }
+                ]
+            },
+            {
+                id: "summer-interludes",
+                title: "03 — Summer Interludes",
+                year: "2022",
+                cover: "./images/p3_cover.jpg",
+                coverFallback: "https://images.unsplash.com/photo-1499209974431-9dac3ada00d7?q=80&w=800&h=800&fit=crop",
+                photos: [
+                    { url: "./images/p3_01.jpg", fallback: "https://images.unsplash.com/photo-1499209974431-9dac3ada00d7?q=80&w=1200&h=900&fit=crop", caption: "Summer Interludes — Baltic Shore", exif: "Pentax 67 · 105mm" },
+                    { url: "./images/p3_02.jpg", fallback: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&h=900&fit=crop", caption: "Summer Interludes — Shoreline Gesture", exif: "Fuji Pro 400H" }
+                ]
+            },
+            {
+                id: "monographs-zines",
+                title: "04 — Monographs & Zines",
+                year: "Limited Editions",
+                cover: "./images/p4_cover.jpg",
+                coverFallback: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=800&h=800&fit=crop",
+                photos: [
+                    { url: "./images/p4_01.jpg", fallback: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?q=80&w=1200&h=900&fit=crop", caption: "Monographs & Zines — Soft Grain Edition", exif: "Japanese Cotton Paper Edition" }
+                ]
+            }
+        ];
+
+        let activePhotoset = galleryData;
+        let currentIndex = 0;
+        
+        let scrollPos = 0;
+        const scrollSpeed = 0.55;
+        let isPaused = false;
+        let animationFrameId = null;
+        let isDragging = false;
+        let dragStartX = 0;
+        let dragStartScrollPos = 0;
+        let activeFocusedIndex = 0;
+        let singleSetWidth = 0;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            buildFilmStrip();
+            renderProjectsGrid();
+            startFilmScroll();
+            setupDragAndTouch();
+        });
+
+        function renderProjectsGrid() {
+            const container = document.getElementById('projects-grid');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            projectsData.forEach((project, pIdx) => {
+                const item = document.createElement('div');
+                item.className = 'group relative flex flex-col items-center cursor-pointer pt-6';
+                
+                item.innerHTML = `
+                    <div class="absolute top-0 inset-x-0 text-center text-[11px] tracking-[0.18em] uppercase text-charcoal opacity-0 group-hover:opacity-100 transition-all duration-300 font-medium truncate pointer-events-none pb-2">
+                        ${project.title}
+                    </div>
+
+                    <div class="relative w-full aspect-square bg-stone-100 rounded-sm overflow-hidden border border-stone-200/60 shadow-sm photo-frame">
+                        <img src="${project.cover}" 
+                             onerror="this.src='${project.coverFallback}'"
+                             alt="${project.title}" 
+                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                    </div>
+                `;
+
+                item.onclick = () => {
+                    openSubAlbum(pIdx);
+                };
+
+                container.appendChild(item);
+            });
+        }
+
+        function openSubAlbum(projectIndex) {
+            const project = projectsData[projectIndex];
+            if (!project) return;
+
+            activePhotoset = project.photos;
+            currentIndex = 0;
+            
+            const titleEl = document.getElementById('lightbox-album-title');
+            if (titleEl) {
+                titleEl.textContent = project.title;
+            }
+
+            openLightbox(0, true);
+        }
+
+        function buildFilmStrip() {
+            const track = document.getElementById('film-track');
+            if (!track) return;
+
+            track.innerHTML = '';
+            const tripledData = [...galleryData, ...galleryData, ...galleryData];
+
+            tripledData.forEach((item, idx) => {
+                const originalIndex = idx % galleryData.length;
+                const frameNum = String(originalIndex + 1).padStart(2, '0');
+
+                const frameEl = document.createElement('div');
+                frameEl.className = 'film-frame flex flex-col items-center flex-shrink-0 cursor-pointer select-none';
+                frameEl.dataset.originalIndex = originalIndex;
+
+                frameEl.innerHTML = `
+                    <div class="relative w-64 sm:w-80 md:w-96 aspect-[4/3] bg-stone-100 rounded-sm overflow-hidden border border-stone-200/50 shadow-sm">
+                        <img src="${item.url}" 
+                             onerror="this.src='${item.fallback}'" 
+                             alt="${item.caption}" 
+                             loading="lazy" 
+                             class="w-full h-full object-cover pointer-events-none">
+                        <span class="absolute top-2 left-2 text-[9px] font-mono text-cream bg-charcoal/70 px-1.5 py-0.5 rounded-xs tracking-wider">
+                            ${frameNum}A
+                        </span>
+                    </div>
+                `;
+
+                frameEl.onclick = () => {
+                    if (!isDragging) {
+                        openLightbox(originalIndex);
+                    }
+                };
+
+                track.appendChild(frameEl);
+            });
+
+            setTimeout(calculateSetWidth, 100);
+        }
+
+        function calculateSetWidth() {
+            const track = document.getElementById('film-track');
+            if (!track || !track.children.length) return;
+            
+            const frameWidth = track.children[0].offsetWidth;
+            const gap = window.innerWidth >= 640 ? 32 : 24;
+            singleSetWidth = (frameWidth + gap) * galleryData.length;
+        }
+
+        function startFilmScroll() {
+            function animate() {
+                if (!isPaused && !isDragging) {
+                    scrollPos += scrollSpeed;
+
+                    if (singleSetWidth > 0 && scrollPos >= singleSetWidth) {
+                        scrollPos -= singleSetWidth;
+                    }
+                    updateTrackTransform();
+                    updateCenteredCaption();
+                }
+                animationFrameId = requestAnimationFrame(animate);
+            }
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function updateTrackTransform() {
+            const track = document.getElementById('film-track');
+            if (track) {
+                track.style.transform = `translateX(-${scrollPos}px)`;
+            }
+        }
+
+        function pauseFilmScroll() {
+            isPaused = true;
+            const badge = document.getElementById('hover-indicator');
+            if (badge) badge.style.opacity = '1';
+        }
+
+        function resumeFilmScroll() {
+            isPaused = false;
+            const badge = document.getElementById('hover-indicator');
+            if (badge) badge.style.opacity = '0';
+        }
+
+        function updateCenteredCaption() {
+            const viewport = document.getElementById('film-viewport');
+            const track = document.getElementById('film-track');
+            if (!viewport || !track) return;
+
+            const viewportCenter = viewport.getBoundingClientRect().left + viewport.offsetWidth / 2;
+            let closestFrame = null;
+            let minDistance = Infinity;
+
+            Array.from(track.children).forEach(frame => {
+                const rect = frame.getBoundingClientRect();
+                const frameCenter = rect.left + rect.width / 2;
+                const dist = Math.abs(viewportCenter - frameCenter);
+
+                if (dist < minDistance) {
+                    minDistance = dist;
+                    closestFrame = frame;
+                }
+            });
+
+            if (closestFrame) {
+                const idx = parseInt(closestFrame.dataset.originalIndex, 10);
+                if (idx !== activeFocusedIndex) {
+                    activeFocusedIndex = idx;
+                    const data = galleryData[idx];
+                    document.getElementById('home-slide-counter').textContent = `${String(idx + 1).padStart(2, '0')} / ${String(galleryData.length).padStart(2, '0')}`;
+                    document.getElementById('home-slide-caption').textContent = data.caption;
+                    document.getElementById('home-slide-exif').textContent = data.exif;
+                }
+            }
+        }
+
+        function scrollFilmByFrame(direction) {
+            pauseFilmScroll();
+            const frameWidth = 320;
+            scrollPos += direction * frameWidth;
+
+            if (singleSetWidth > 0) {
+                if (scrollPos < 0) scrollPos += singleSetWidth;
+                if (scrollPos >= singleSetWidth * 2) scrollPos -= singleSetWidth;
+            }
+
+            updateTrackTransform();
+            updateCenteredCaption();
+
+            setTimeout(() => {
+                resumeFilmScroll();
+            }, 2500);
+        }
+
+        function setupDragAndTouch() {
+            const viewport = document.getElementById('film-viewport');
+            if (!viewport) return;
+
+            viewport.addEventListener('mousedown', (e) => {
+                isDragging = false;
+                dragStartX = e.pageX;
+                dragStartScrollPos = scrollPos;
+                pauseFilmScroll();
+
+                const onMouseMove = (moveEvent) => {
+                    const deltaX = moveEvent.pageX - dragStartX;
+                    if (Math.abs(deltaX) > 5) {
+                        isDragging = true;
+                        scrollPos = dragStartScrollPos - deltaX;
+                        updateTrackTransform();
+                        updateCenteredCaption();
+                    }
+                };
+
+                const onMouseUp = () => {
+                    window.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('mouseup', onMouseUp);
+                    setTimeout(() => { isDragging = false; }, 50);
+                    resumeFilmScroll();
+                };
+
+                window.addEventListener('mousemove', onMouseMove);
+                window.addEventListener('mouseup', onMouseUp);
+            });
+
+            viewport.addEventListener('touchstart', (e) => {
+                dragStartX = e.touches[0].pageX;
+                dragStartScrollPos = scrollPos;
+                pauseFilmScroll();
+            }, { passive: true });
+
+            viewport.addEventListener('touchmove', (e) => {
+                const deltaX = e.touches[0].pageX - dragStartX;
+                scrollPos = dragStartScrollPos - deltaX;
+                updateTrackTransform();
+                updateCenteredCaption();
+            }, { passive: true });
+
+            viewport.addEventListener('touchend', () => {
+                resumeFilmScroll();
+            }, { passive: true });
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-content').forEach(el => el.classList.add('hidden'));
+            
+            const target = document.getElementById('page-' + pageId);
+            if (target) {
+                target.classList.remove('hidden');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-charcoal', 'border-b', 'border-charcoal');
+                btn.classList.add('text-dust-gray');
+            });
+
+            const activeBtn = document.getElementById('nav-' + pageId);
+            if (activeBtn) {
+                activeBtn.classList.add('text-charcoal', 'border-b', 'border-charcoal');
+                activeBtn.classList.remove('text-dust-gray');
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (pageId === 'home') {
+                updateCenteredCaption();
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+            menu.classList.toggle('flex');
+        }
+
+        function openLightbox(index, isSubAlbum = false) {
+            if (!isSubAlbum) {
+                activePhotoset = galleryData;
+                const titleEl = document.getElementById('lightbox-album-title');
+                if (titleEl) titleEl.textContent = '';
+            }
+            currentIndex = index;
+            updateLightboxContent();
+            document.getElementById('lightbox').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
+        function nextPhoto() {
+            currentIndex = (currentIndex + 1) % activePhotoset.length;
+            updateLightboxContent();
+        }
+
+        function prevPhoto() {
+            currentIndex = (currentIndex - 1 + activePhotoset.length) % activePhotoset.length;
+            updateLightboxContent();
+        }
+
+        function updateLightboxContent() {
+            const data = activePhotoset[currentIndex];
+            const img = document.getElementById('lightbox-img');
+            
+            img.style.opacity = '0.3';
+            setTimeout(() => {
+                img.src = data.url;
+                img.onerror = () => { img.src = data.fallback || data.url; };
+                document.getElementById('lightbox-caption').textContent = data.caption;
+                document.getElementById('lightbox-exif').textContent = data.exif;
+                document.getElementById('lightbox-counter').textContent = `${String(currentIndex + 1).padStart(2, '0')} / ${String(activePhotoset.length).padStart(2, '0')}`;
+                img.style.opacity = '1';
+            }, 150);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            const lightbox = document.getElementById('lightbox');
+            const isHomeActive = !document.getElementById('page-home').classList.contains('hidden');
+
+            if (!lightbox.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') nextPhoto();
+                if (e.key === 'ArrowLeft') prevPhoto();
+                if (e.key === 'Escape') closeLightbox();
+            } else if (isHomeActive) {
+                if (e.key === 'ArrowRight') scrollFilmByFrame(1);
+                if (e.key === 'ArrowLeft') scrollFilmByFrame(-1);
+            }
+        });
+    </script>
+</body>
+</html>
